@@ -33,6 +33,9 @@ export default async function ClientHome() {
           <Link href="/client/folders" className="btn">
             Folders
           </Link>
+          <Link href="/client/browse" className="btn">
+            Browse
+          </Link>
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { resolvePhotoUrl } from "@/lib/chaircode/photoUrl";
 import { Topbar } from "@/components/Topbar";
 
 export default async function FolderDetailPage({
@@ -26,15 +27,8 @@ export default async function FolderDetailPage({
 
   const cuts = await Promise.all(
     (cutsRaw ?? []).map(async (c) => {
-      const photos = c.photos as { path: string }[];
-      const primaryPath = photos?.[0]?.path;
-      let thumbUrl: string | null = null;
-      if (primaryPath) {
-        const { data } = await supabase.storage
-          .from("cut-photos")
-          .createSignedUrl(primaryPath, 3600);
-        thumbUrl = data?.signedUrl ?? null;
-      }
+      const photos = c.photos as { path: string; bucket?: "cut-photos" | "portfolio-photos" }[];
+      const thumbUrl = await resolvePhotoUrl(supabase, photos?.[0]);
       return { ...c, thumbUrl };
     }),
   );

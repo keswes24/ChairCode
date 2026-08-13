@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import QRCode from "qrcode";
 import { createClient } from "@/lib/supabase/server";
 import { ZONES, type Zone } from "@/lib/chaircode/constants";
+import { resolvePhotoUrl } from "@/lib/chaircode/photoUrl";
 import { Topbar } from "@/components/Topbar";
 
 const ZONE_LABELS: Record<Zone, string> = {
@@ -36,13 +37,8 @@ export default async function SavedCutPage({
 
   if (!cut) notFound();
 
-  const photos = cut.photos as { path: string }[];
-  const primaryPath = photos?.[0]?.path;
-  let photoUrl: string | null = null;
-  if (primaryPath) {
-    const { data } = await supabase.storage.from("cut-photos").createSignedUrl(primaryPath, 3600);
-    photoUrl = data?.signedUrl ?? null;
-  }
+  const photos = cut.photos as { path: string; bucket?: "cut-photos" | "portfolio-photos" }[];
+  const photoUrl = await resolvePhotoUrl(supabase, photos?.[0]);
 
   const qrDataUrl = await QRCode.toDataURL(cut.checkout_code, {
     margin: 1,

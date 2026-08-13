@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Topbar } from "@/components/Topbar";
@@ -25,9 +26,11 @@ export default async function BarberHome() {
         <h1 className="display" style={{ fontSize: 44 }}>
           Welcome, {profile.full_name || user.email}
         </h1>
-        <p style={{ color: "var(--ivory-dim)", marginTop: 12 }}>
-          Barber auth is wired up. Portfolio and inbox land next.
-        </p>
+        <div style={{ display: "flex", gap: 12, marginTop: 24, flexWrap: "wrap" }}>
+          <Link href="/barber/portfolio" className="btn btn-gold">
+            My Portfolio
+          </Link>
+        </div>
       </div>
     </div>
   );
