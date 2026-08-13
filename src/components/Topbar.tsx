@@ -7,7 +7,10 @@ const NAV_LINKS: Record<string, { href: string; label: string }[]> = {
     { href: "/client/folders", label: "Folders" },
     { href: "/client/browse", label: "Browse" },
   ],
-  Barber: [{ href: "/barber/portfolio", label: "My Portfolio" }],
+  Barber: [
+    { href: "/barber/portfolio", label: "My Portfolio" },
+    { href: "/barber/teach", label: "Teach the AI" },
+  ],
 };
 
 export function Topbar({ roleLabel }: { roleLabel: string }) {
