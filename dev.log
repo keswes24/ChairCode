@@ -1,0 +1,12 @@
+
+> chaircode@0.1.0 dev
+> next dev
+
+▲ Next.js 16.3.0 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.0.0.103:3000
+- Environments: .env.local
+✓ Ready in 2.8s
+✓ Running next.config.ts took 455ms
+
+ GET /barber 200 in 3.6s (next.js: 1416ms, proxy.ts: 721ms, application-code: 1446ms)
