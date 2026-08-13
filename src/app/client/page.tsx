@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Topbar } from "@/components/Topbar";
@@ -25,9 +26,14 @@ export default async function ClientHome() {
         <h1 className="display" style={{ fontSize: 44 }}>
           Welcome, {profile.full_name || user.email}
         </h1>
-        <p style={{ color: "var(--ivory-dim)", marginTop: 12 }}>
-          Client auth is wired up. New Cut flow lands next.
-        </p>
+        <div style={{ display: "flex", gap: 12, marginTop: 24, flexWrap: "wrap" }}>
+          <Link href="/client/new-cut" className="btn btn-gold">
+            New Cut
+          </Link>
+          <Link href="/client/folders" className="btn">
+            Folders
+          </Link>
+        </div>
       </div>
     </div>
   );
