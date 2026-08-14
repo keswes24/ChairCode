@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ZONES, type Zone } from "@/lib/chaircode/constants";
 import { resolvePhotoUrl } from "@/lib/chaircode/photoUrl";
 import { Topbar } from "@/components/Topbar";
+import BookingPanel from "./BookingPanel";
 
 const ZONE_LABELS: Record<Zone, string> = {
   front: "Front",
@@ -47,6 +48,16 @@ export default async function SavedCutPage({
   });
 
   const breakdown = cut.breakdown as Record<Zone, string>;
+
+  let bookedBarberName: string | null = null;
+  if (cut.booked_barber_id) {
+    const { data: barberProfile } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", cut.booked_barber_id)
+      .maybeSingle();
+    bookedBarberName = barberProfile?.full_name ?? "your barber";
+  }
 
   return (
     <div>
@@ -98,6 +109,15 @@ export default async function SavedCutPage({
                 <div className="ztext">{breakdown[z]}</div>
               </div>
             ))}
+            <BookingPanel
+              cutId={cut.id}
+              initialBookedBarberId={cut.booked_barber_id}
+              initialBookedBarberName={bookedBarberName}
+              initialMarkedBooked={cut.client_marked_booked}
+              initialPhotoConsent={cut.photo_consent}
+              hasAfterPhoto={!!cut.after_photo_path}
+              initialFeedback={cut.feedback}
+            />
           </div>
         </div>
       </div>

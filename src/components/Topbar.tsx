@@ -9,6 +9,7 @@ const NAV_LINKS: Record<string, { href: string; label: string }[]> = {
   ],
   Barber: [
     { href: "/barber/portfolio", label: "My Portfolio" },
+    { href: "/barber/inbox", label: "Inbox" },
     { href: "/barber/teach", label: "Teach the AI" },
   ],
 };

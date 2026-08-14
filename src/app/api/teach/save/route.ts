@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 import sharp from "sharp";
 import { createClient } from "@/lib/supabase/server";
 import { CONTROLLED_TAGS, ZONES } from "@/lib/chaircode/constants";
+import { logCorrections } from "@/lib/chaircode/logCorrections";
 
 const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
 const MAX_LONG_EDGE = 1024;
-const MAX_CORRECTION_EXAMPLES = 60;
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -48,31 +48,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: `Invalid zone data: ${(err as Error).message}` }, { status: 400 });
   }
 
-  const changedZones = ZONES.filter((z) => original[z].trim() !== corrected[z].trim());
-
-  if (changedZones.length > 0) {
-    const { error: insertError } = await supabase.from("correction_examples").insert(
-      changedZones.map((z) => ({
-        zone: z,
-        before_text: original[z].trim(),
-        after_text: corrected[z].trim(),
-      })),
-    );
-    if (insertError) {
-      return NextResponse.json({ error: `Logging corrections failed: ${insertError.message}` }, { status: 500 });
-    }
-
-    // Keep only the most recent MAX_CORRECTION_EXAMPLES rows, per the brief's spec.
-    const { data: keepRows } = await supabase
-      .from("correction_examples")
-      .select("id")
-      .order("created_at", { ascending: false })
-      .limit(MAX_CORRECTION_EXAMPLES);
-    const keepIds = (keepRows ?? []).map((r) => r.id);
-    if (keepIds.length === MAX_CORRECTION_EXAMPLES) {
-      await supabase.from("correction_examples").delete().not("id", "in", `(${keepIds.join(",")})`);
-    }
-  }
+  const correctionsLogged = await logCorrections(supabase, original, corrected);
 
   let portfolioEntryId: string | null = null;
   if (addToPortfolio) {
@@ -132,5 +108,5 @@ export async function POST(request: Request) {
     portfolioEntryId = entry.id;
   }
 
-  return NextResponse.json({ correctionsLogged: changedZones.length, portfolioEntryId });
+  return NextResponse.json({ correctionsLogged, portfolioEntryId });
 }

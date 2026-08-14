@@ -57,6 +57,10 @@ export async function POST(request: Request) {
       checkout_code: checkoutCode,
       source_portfolio_id: entry.id,
       source_barber_id: entry.barber_id,
+      // Browsing a specific barber's work implies intent to book with them —
+      // route it to their inbox automatically instead of making the client
+      // pick a barber again for a cut that already came from one.
+      booked_barber_id: entry.barber_id,
     })
     .select("id, checkout_code")
     .single();
