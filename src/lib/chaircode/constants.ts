@@ -40,6 +40,14 @@ export const CONTROLLED_TAGS = [
 
 export type ControlledTag = (typeof CONTROLLED_TAGS)[number];
 
+export const DEFAULT_TOOL_MAINTENANCE = [
+  { label: "Shears", task: "Sharpen", interval_weeks: 8 },
+  { label: "Clippers", task: "Oil blades", interval_weeks: 1 },
+  { label: "Clipper blades", task: "Replace", interval_weeks: 26 },
+  { label: "Trimmers", task: "Oil & clean", interval_weeks: 2 },
+  { label: "Foil shaver", task: "Clean foil & cutters", interval_weeks: 1 },
+] as const;
+
 // Checkout code: 5 chars, excludes ambiguous O/0/I/1.
 const CHECKOUT_CODE_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
 

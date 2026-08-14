@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { embeddedOne } from "@/lib/chaircode/embeddedOne";
 
 type Barber = { id: string; full_name: string; city: string | null };
 
@@ -54,7 +55,7 @@ export default function BookingPanel({
       (data ?? []).map((b) => ({
         id: b.id,
         full_name: b.full_name,
-        city: (b.barbers as unknown as { city: string | null }[])?.[0]?.city ?? null,
+        city: embeddedOne(b.barbers as { city: string | null } | { city: string | null }[] | null)?.city ?? null,
       })),
     );
     setLoadingBarbers(false);

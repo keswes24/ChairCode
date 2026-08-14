@@ -36,6 +36,9 @@ export default async function BarberHome() {
           <Link href="/barber/teach" className="btn">
             Teach the AI
           </Link>
+          <Link href="/barber/tools" className="btn">
+            Tool Care
+          </Link>
         </div>
       </div>
     </div>
