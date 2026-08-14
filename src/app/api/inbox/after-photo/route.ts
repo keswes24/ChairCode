@@ -60,6 +60,7 @@ export async function POST(request: Request) {
     .from("cuts")
     .update({
       after_photo_path: path,
+      after_photo_added_at: new Date().toISOString(),
       servicing_barber_id: user.id,
       next_maintenance_due: nextDue.toISOString().slice(0, 10),
     })

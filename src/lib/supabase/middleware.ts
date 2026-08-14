@@ -1,7 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/signup", "/auth", "/b/"];
+// /api/cron/* is called by the scheduler (or manually, for testing), not a
+// logged-in browser session — it gates itself with its own bearer-token
+// check instead, so it must not be redirected to /login here.
+const PUBLIC_PATHS = ["/login", "/signup", "/auth", "/b/", "/api/cron/"];
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
