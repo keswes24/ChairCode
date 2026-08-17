@@ -65,6 +65,102 @@ Tags: choose 1-4 tags from this exact controlled vocabulary only, never invent n
 Set "filtered" to true if the reference photo looks heavily edited or professionally styled/lit in a way that may not reflect a realistic in-person result.${fewShot}`;
 }
 
+export type CutRefreshBreakdown = {
+  overallNotes: string;
+  zones: Record<(typeof ZONES)[number], string>;
+};
+
+function buildRefreshSystemPrompt(
+  originalZones: Record<string, string>,
+  weeksElapsed: number,
+  corrections: CorrectionExample[],
+): string {
+  const fewShot =
+    corrections.length > 0
+      ? `\n\nRecent barber corrections — calibrate your reads against these (the AI's original guess was wrong, the barber's correction is ground truth):\n${corrections
+          .map(
+            (c, i) =>
+              `${i + 1}. [${c.zone}] AI said: "${c.before_text}" — barber corrected to: "${c.after_text}"`,
+          )
+          .join("\n")}`
+      : "";
+
+  const lastTimeText = ZONES.map((z) => `- ${z}: ${originalZones[z]}`).join("\n");
+
+  return `You are ChairCode's cut-refresh assistant. A client is back in the chair for a touch-up. Your job is NOT to design a new style — it's to tell the barber exactly what to do THIS visit to restore the style they already have, based on regrowth since last time.
+
+Guard chart (use these exact numbers, never invent others): ${guardChartText}.
+
+What was done last time, zone by zone (this is the target style to restore):
+${lastTimeText}
+
+It has been approximately ${weeksElapsed} week(s) since that cut.
+
+For every zone, reason in this order:
+1. Look at the new photo and judge the ACTUAL visible regrowth in that zone — real visual evidence beats a growth-rate formula. Average hair growth is roughly 1/4" per 4 weeks, but curl pattern, hair type, and zone all vary — use ${weeksElapsed} week(s) only as a rough sanity check against what you actually see.
+2. State what guard/technique was used last time (from the list above) and what to use THIS time to bring it back to the same target — usually the same guard, unless visible regrowth clearly calls for stepping down a size, or the zone was scissor/length-based, in which case describe how much length to remove.
+3. If a zone looks like it's barely grown or the photo doesn't show it clearly, say so plainly rather than inventing a change.
+4. Flag if the client appears to be intentionally growing something out (e.g. sides noticeably longer than a simple maintenance regrowth would explain) — note it as a question to confirm in person rather than assuming.
+
+Write each zone's text as direct, actionable instruction to the barber (e.g. "Sides were #2 last time; regrowth is minimal — stay at #2." or "Sides were #1 eight weeks ago; grown out further than expected for the interval — confirm with client whether to maintain tight at #1 or ease up to #1.5.").
+
+Also write one or two sentences of overall notes summarizing the visit (e.g. anything notable about how evenly it grew out, or if the whole cut looks like it's ready to be redone from scratch instead of just refreshed).${fewShot}`;
+}
+
+export async function analyzeCutRefresh(params: {
+  imageBase64: string;
+  imageMediaType: "image/jpeg" | "image/png" | "image/webp";
+  originalZones: Record<string, string>;
+  weeksElapsed: number;
+  corrections: CorrectionExample[];
+}): Promise<CutRefreshBreakdown> {
+  const { imageBase64, imageMediaType, originalZones, weeksElapsed, corrections } = params;
+
+  const userContent: Anthropic.MessageParam["content"] = [
+    {
+      type: "image",
+      source: { type: "base64", media_type: imageMediaType, data: imageBase64 },
+    },
+    {
+      type: "text",
+      text: "This is today's photo of the client's current hair, in the chair. Produce refresh guidance for each zone.",
+    },
+  ];
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 2048,
+    system: buildRefreshSystemPrompt(originalZones, weeksElapsed, corrections),
+    messages: [{ role: "user", content: userContent }],
+    tools: [
+      {
+        name: "submit_refresh_breakdown",
+        description: "Submit the structured zone-by-zone refresh guidance for today's touch-up.",
+        input_schema: {
+          type: "object",
+          properties: {
+            overallNotes: { type: "string" },
+            zones: {
+              type: "object",
+              properties: zoneSchema,
+              required: [...ZONES],
+            },
+          },
+          required: ["overallNotes", "zones"],
+        },
+      },
+    ],
+    tool_choice: { type: "tool", name: "submit_refresh_breakdown" },
+  });
+
+  const toolUse = response.content.find((block) => block.type === "tool_use");
+  if (!toolUse || toolUse.type !== "tool_use") {
+    throw new Error("Model did not return a structured refresh breakdown.");
+  }
+
+  return toolUse.input as CutRefreshBreakdown;
+}
+
 export async function analyzeCutPhoto(params: {
   imageBase64: string;
   imageMediaType: "image/jpeg" | "image/png" | "image/webp";

@@ -109,6 +109,9 @@ export default async function SavedCutPage({
                 <div className="ztext">{breakdown[z]}</div>
               </div>
             ))}
+            <Link href={`/client/cuts/${cut.id}/refresh`} className="btn" style={{ marginBottom: 20 }}>
+              Refresh this cut →
+            </Link>
             <BookingPanel
               cutId={cut.id}
               initialBookedBarberId={cut.booked_barber_id}

@@ -78,6 +78,9 @@ export default async function BarberInboxDetailPage({
             {clientName}
             {cut.client_marked_booked ? " · Booked" : " · Not yet confirmed booked"}
           </div>
+          <Link href={`/barber/inbox/${cut.id}/refresh`} className="btn btn-sm">
+            Refresh this cut →
+          </Link>
         </div>
 
         <div className="split">
