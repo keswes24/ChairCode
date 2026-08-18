@@ -5,19 +5,6 @@ import { CONTROLLED_TAGS, GUARD_CHART, ZONES } from "@/lib/chaircode/constants";
 // per the handoff brief, do not reuse any internal/artifact-proxy-only model id.
 const MODEL = "claude-sonnet-5";
 
-// TEMP DIAGNOSTIC: throws a report (instead of just logging) so it surfaces
-// directly in the API error response shown in the browser — Vercel's log UI
-// has been unreliable for finding this. Never includes the real secret
-// value, only its length and the index/code of any non-ASCII character.
-// Remove once the production ByteString-header bug is found.
-function diagnoseEnvVar(name: string): string {
-  const value = process.env[name] ?? "<undefined>";
-  const suspicious = [...value]
-    .map((c, i) => ({ i, code: c.codePointAt(0)! }))
-    .filter((c) => c.code > 127);
-  return `${name}: length=${value.length} nonAsciiChars=${JSON.stringify(suspicious)}`;
-}
-
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export type CorrectionExample = {
@@ -200,16 +187,14 @@ export async function analyzeCutPhoto(params: {
     },
   ];
 
-  let response;
-  try {
-    response = await client.messages.create({
-      model: MODEL,
-      max_tokens: 2048,
-      system: buildSystemPrompt(corrections),
-      messages: [{ role: "user", content: userContent }],
-      tools: [
-        {
-          name: "submit_cut_breakdown",
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 2048,
+    system: buildSystemPrompt(corrections),
+    messages: [{ role: "user", content: userContent }],
+    tools: [
+      {
+        name: "submit_cut_breakdown",
         description:
           "Submit the structured zone-by-zone cut breakdown for this reference photo.",
         input_schema: {
@@ -251,13 +236,8 @@ export async function analyzeCutPhoto(params: {
         },
       },
     ],
-      tool_choice: { type: "tool", name: "submit_cut_breakdown" },
-    });
-  } catch (err) {
-    throw new Error(
-      `${(err as Error).message} || DIAGNOSTIC: ${diagnoseEnvVar("ANTHROPIC_API_KEY")}`,
-    );
-  }
+    tool_choice: { type: "tool", name: "submit_cut_breakdown" },
+  });
 
   const toolUse = response.content.find((block) => block.type === "tool_use");
   if (!toolUse || toolUse.type !== "tool_use") {
