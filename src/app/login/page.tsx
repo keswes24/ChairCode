@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { signIn, type AuthState } from "./actions";
 
@@ -13,14 +14,24 @@ export default function LoginPage() {
     <div
       style={{
         maxWidth: 380,
-        margin: "80px auto",
+        margin: "40px auto",
         padding: "0 24px",
       }}
     >
-      <div className="eyebrow" style={{ marginBottom: 10 }}>
-        ChairCode
+      <div style={{ textAlign: "center", marginBottom: 8 }}>
+        <Image
+          src="/chaircode-logo.webp"
+          alt="ChairCode"
+          width={180}
+          height={180}
+          priority
+          style={{ width: 180, height: 180, margin: "0 auto" }}
+        />
       </div>
-      <h1 className="display" style={{ fontSize: 40, marginBottom: 28 }}>
+      <h1
+        className="display"
+        style={{ fontSize: 40, marginBottom: 28, textAlign: "center" }}
+      >
         Log in
       </h1>
 

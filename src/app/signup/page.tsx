@@ -1,10 +1,26 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { signUp, type SignUpState } from "./actions";
 
 const initialState: SignUpState = { error: null, sent: false };
+
+function Logo() {
+  return (
+    <div style={{ textAlign: "center", marginBottom: 8 }}>
+      <Image
+        src="/chaircode-logo.webp"
+        alt="ChairCode"
+        width={180}
+        height={180}
+        priority
+        style={{ width: 180, height: 180, margin: "0 auto" }}
+      />
+    </div>
+  );
+}
 
 export default function SignUpPage() {
   const [state, formAction, pending] = useActionState(signUp, initialState);
@@ -12,11 +28,12 @@ export default function SignUpPage() {
 
   if (state.sent) {
     return (
-      <div style={{ maxWidth: 380, margin: "80px auto", padding: "0 24px" }}>
-        <div className="eyebrow" style={{ marginBottom: 10 }}>
-          ChairCode
-        </div>
-        <h1 className="display" style={{ fontSize: 32, marginBottom: 16 }}>
+      <div style={{ maxWidth: 380, margin: "40px auto", padding: "0 24px" }}>
+        <Logo />
+        <h1
+          className="display"
+          style={{ fontSize: 32, marginBottom: 16, textAlign: "center" }}
+        >
           Check your email
         </h1>
         <p style={{ color: "var(--ivory-dim)", fontSize: 14, lineHeight: 1.6 }}>
@@ -28,11 +45,12 @@ export default function SignUpPage() {
   }
 
   return (
-    <div style={{ maxWidth: 380, margin: "80px auto", padding: "0 24px" }}>
-      <div className="eyebrow" style={{ marginBottom: 10 }}>
-        ChairCode
-      </div>
-      <h1 className="display" style={{ fontSize: 40, marginBottom: 28 }}>
+    <div style={{ maxWidth: 380, margin: "40px auto", padding: "0 24px" }}>
+      <Logo />
+      <h1
+        className="display"
+        style={{ fontSize: 40, marginBottom: 28, textAlign: "center" }}
+      >
         Sign up
       </h1>
 
