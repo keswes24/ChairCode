@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { signUp, type SignUpState } from "./actions";
 
 const initialState: SignUpState = { error: null, sent: false };
@@ -23,8 +24,11 @@ function Logo() {
 }
 
 export default function SignUpPage() {
+  const searchParams = useSearchParams();
   const [state, formAction, pending] = useActionState(signUp, initialState);
-  const [role, setRole] = useState<"client" | "barber">("client");
+  const [role, setRole] = useState<"client" | "barber">(
+    searchParams.get("role") === "barber" ? "barber" : "client",
+  );
 
   if (state.sent) {
     return (

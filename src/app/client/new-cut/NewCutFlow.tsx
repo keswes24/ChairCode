@@ -199,11 +199,14 @@ export default function NewCutFlow() {
       const data = await resp.json();
       if (!resp.ok) throw new Error(data.error || "Save failed.");
 
-      const qrDataUrl = await QRCode.toDataURL(data.checkoutCode, {
-        margin: 1,
-        width: 220,
-        color: { dark: "#0b0b0c", light: "#e4c578" },
-      });
+      const qrDataUrl = await QRCode.toDataURL(
+        `${window.location.origin}/checkout/${data.checkoutCode}`,
+        {
+          margin: 1,
+          width: 220,
+          color: { dark: "#0b0b0c", light: "#e4c578" },
+        },
+      );
       setSaved({ checkoutCode: data.checkoutCode, qrDataUrl });
       setView("saved");
     } catch (err) {

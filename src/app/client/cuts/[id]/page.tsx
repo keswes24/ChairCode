@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
+import { headers } from "next/headers";
 import QRCode from "qrcode";
 import { createClient } from "@/lib/supabase/server";
 import { ZONES, type Zone } from "@/lib/chaircode/constants";
@@ -41,7 +42,9 @@ export default async function SavedCutPage({
   const photos = cut.photos as { path: string; bucket?: "cut-photos" | "portfolio-photos" }[];
   const photoUrl = await resolvePhotoUrl(supabase, photos?.[0]);
 
-  const qrDataUrl = await QRCode.toDataURL(cut.checkout_code, {
+  const requestHeaders = await headers();
+  const origin = `${requestHeaders.get("x-forwarded-proto") ?? "https"}://${requestHeaders.get("host")}`;
+  const qrDataUrl = await QRCode.toDataURL(`${origin}/checkout/${cut.checkout_code}`, {
     margin: 1,
     width: 200,
     color: { dark: "#0b0b0c", light: "#e4c578" },

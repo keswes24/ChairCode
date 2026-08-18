@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { resolvePhotoUrl } from "@/lib/chaircode/photoUrl";
 import { Topbar } from "@/components/Topbar";
+import LookUpByCode from "./LookUpByCode";
 
 export default async function BarberInboxPage() {
   const supabase = await createClient();
@@ -51,6 +52,8 @@ export default async function BarberInboxPage() {
           These are cut profiles clients have sent you ahead of their appointment. Names stay private
           until the client confirms they&rsquo;ve booked.
         </p>
+
+        <LookUpByCode />
 
         {cuts.length === 0 ? (
           <div className="empty-state">
