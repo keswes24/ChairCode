@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { Suspense, useActionState, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -24,6 +24,14 @@ function Logo() {
 }
 
 export default function SignUpPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignUpForm />
+    </Suspense>
+  );
+}
+
+function SignUpForm() {
   const searchParams = useSearchParams();
   const [state, formAction, pending] = useActionState(signUp, initialState);
   const [role, setRole] = useState<"client" | "barber">(
