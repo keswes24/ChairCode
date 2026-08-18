@@ -23,6 +23,19 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "ChairCode",
   description: "Cut translation for clients and barbers.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    title: "ChairCode",
+    statusBarStyle: "black-translucent",
+  },
+  icons: {
+    icon: [{ url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" }],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+};
+
+export const viewport = {
+  themeColor: "#0b0b0c",
 };
 
 export default function RootLayout({
