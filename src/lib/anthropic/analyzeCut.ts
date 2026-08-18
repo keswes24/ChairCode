@@ -5,7 +5,27 @@ import { CONTROLLED_TAGS, GUARD_CHART, ZONES } from "@/lib/chaircode/constants";
 // per the handoff brief, do not reuse any internal/artifact-proxy-only model id.
 const MODEL = "claude-sonnet-5";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const client = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+  // TEMP DIAGNOSTIC: log outgoing header values on failure so we can see
+  // exactly which one contains an invalid (non-Latin1) character in
+  // production. Remove once the ByteString header bug is found.
+  fetch: async (input, init) => {
+    try {
+      return await fetch(input as never, init);
+    } catch (err) {
+      console.error(
+        "[anthropic-fetch-diagnostic] request failed. Header entries:",
+        JSON.stringify(
+          Object.entries((init?.headers as Record<string, string>) ?? {}).map(
+            ([k, v]) => [k, v, [...String(v)].map((c) => c.codePointAt(0))],
+          ),
+        ),
+      );
+      throw err;
+    }
+  },
+});
 
 export type CorrectionExample = {
   zone: string;
