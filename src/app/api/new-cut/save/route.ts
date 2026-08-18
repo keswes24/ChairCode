@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { photos, breakdown, styleNotes, folder } = body ?? {};
+  const { photos, breakdown, styleNotes, folder, forChildId } = body ?? {};
 
   if (!photos || !breakdown) {
     return NextResponse.json({ error: "Missing photos or breakdown." }, { status: 400 });
@@ -54,6 +54,7 @@ export async function POST(request: Request) {
       next_maintenance_due: nextMaintenanceDue,
       checkout_code: checkoutCode,
       filtered: !!breakdown.filtered,
+      for_child_id: forChildId || null,
     })
     .select("id, checkout_code")
     .single();

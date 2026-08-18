@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import QRCode from "qrcode";
 import { ZONES, type Zone } from "@/lib/chaircode/constants";
 import { QUESTIONS, FOLDER_NAMES } from "@/lib/chaircode/questions";
 import { Topbar } from "@/components/Topbar";
+import { createClient } from "@/lib/supabase/client";
+
+type ChildProfile = { id: string; name: string | null; age_range: string | null };
 
 const ZONE_LABELS: Record<Zone, string> = {
   front: "Front",
@@ -51,12 +54,27 @@ export default function NewCutFlow() {
   const [analyzedPhotos, setAnalyzedPhotos] = useState<AnalyzedPhoto[]>([]);
   const [description, setDescription] = useState("");
   const [folder, setFolder] = useState<string>(FOLDER_NAMES[0]);
+  const [childProfiles, setChildProfiles] = useState<ChildProfile[]>([]);
+  const [forChildId, setForChildId] = useState<string>("");
   const [breakdown, setBreakdown] = useState<Breakdown | null>(null);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [answeredZones, setAnsweredZones] = useState<Set<Zone>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState<{ checkoutCode: string; qrDataUrl: string } | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      supabase
+        .from("child_profiles")
+        .select("id, name, age_range")
+        .eq("parent_id", user.id)
+        .order("created_at", { ascending: true })
+        .then(({ data }) => setChildProfiles(data ?? []));
+    });
+  }, []);
 
   function addFiles(fileList: FileList | null) {
     if (!fileList) return;
@@ -159,6 +177,7 @@ export default function NewCutFlow() {
           },
           styleNotes: description,
           folder,
+          forChildId: forChildId || null,
         }),
       });
       const data = await resp.json();
@@ -187,12 +206,15 @@ export default function NewCutFlow() {
             photos={photos}
             description={description}
             folder={folder}
+            childProfiles={childProfiles}
+            forChildId={forChildId}
             error={error}
             onAddFiles={addFiles}
             onRemovePhoto={removePhoto}
             onToggleZone={toggleZoneForPhoto}
             onDescriptionChange={setDescription}
             onFolderChange={setFolder}
+            onForChildChange={setForChildId}
             onAnalyze={analyze}
           />
         )}
@@ -237,7 +259,11 @@ export default function NewCutFlow() {
           <SavedStage
             checkoutCode={saved.checkoutCode}
             qrDataUrl={saved.qrDataUrl}
-            onDone={() => router.push(`/client/folders/${encodeURIComponent(folder)}`)}
+            onDone={() =>
+              router.push(
+                `/client/folders/${encodeURIComponent(folder)}${forChildId ? `?profile=${forChildId}` : ""}`,
+              )
+            }
           />
         )}
       </div>
@@ -249,24 +275,30 @@ function UploadStage(props: {
   photos: PhotoEntry[];
   description: string;
   folder: string;
+  childProfiles: ChildProfile[];
+  forChildId: string;
   error: string | null;
   onAddFiles: (files: FileList | null) => void;
   onRemovePhoto: (idx: number) => void;
   onToggleZone: (photoIdx: number, zone: Zone) => void;
   onDescriptionChange: (v: string) => void;
   onFolderChange: (v: string) => void;
+  onForChildChange: (v: string) => void;
   onAnalyze: () => void;
 }) {
   const {
     photos,
     description,
     folder,
+    childProfiles,
+    forChildId,
     error,
     onAddFiles,
     onRemovePhoto,
     onToggleZone,
     onDescriptionChange,
     onFolderChange,
+    onForChildChange,
     onAnalyze,
   } = props;
 
@@ -298,19 +330,55 @@ function UploadStage(props: {
         ))}
       </div>
 
-      <label htmlFor="photo-input" className="drop">
-        <div style={{ fontSize: 30, marginBottom: 10 }}>📷</div>
-        <h3>Drop photos, or tap to choose</h3>
-        <p>JPG or PNG · upload more than one if different photos show different angles</p>
-        <input
-          id="photo-input"
-          type="file"
-          accept="image/*"
-          multiple
-          style={{ display: "none" }}
-          onChange={(e) => onAddFiles(e.target.files)}
-        />
-      </label>
+      {childProfiles.length > 0 && (
+        <>
+          <div className="eyebrow" style={{ marginBottom: 10 }}>
+            Whose cut is this?
+          </div>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 26 }}>
+            <div
+              className={`folder-chip ${!forChildId ? "selected" : ""}`}
+              onClick={() => onForChildChange("")}
+            >
+              Myself
+            </div>
+            {childProfiles.map((c) => (
+              <div
+                key={c.id}
+                className={`folder-chip ${forChildId === c.id ? "selected" : ""}`}
+                onClick={() => onForChildChange(c.id)}
+              >
+                {c.name || "Unnamed"}
+                {c.age_range ? ` · ${c.age_range}` : ""}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {photos.length === 0 ? (
+        <label htmlFor="photo-input" className="drop">
+          <div style={{ fontSize: 30, marginBottom: 10 }}>📷</div>
+          <h3>Drop photos, or tap to choose</h3>
+          <p>JPG or PNG · you can add more photos after this one if different angles help</p>
+        </label>
+      ) : (
+        <label
+          htmlFor="photo-input"
+          className="btn"
+          style={{ display: "inline-flex", cursor: "pointer" }}
+        >
+          + Add another angle (front, side, back…)
+        </label>
+      )}
+      <input
+        id="photo-input"
+        type="file"
+        accept="image/*"
+        multiple
+        style={{ display: "none" }}
+        onChange={(e) => onAddFiles(e.target.files)}
+      />
 
       {photos.length > 0 && (
         <div style={{ marginTop: 22 }}>

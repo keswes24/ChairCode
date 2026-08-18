@@ -6,10 +6,13 @@ import { Topbar } from "@/components/Topbar";
 
 export default async function FolderDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ folder: string }>;
+  searchParams: Promise<{ profile?: string }>;
 }) {
   const { folder } = await params;
+  const { profile: profileParam } = await searchParams;
   const decodedFolder = decodeURIComponent(folder);
 
   const supabase = await createClient();
@@ -18,12 +21,16 @@ export default async function FolderDetailPage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: cutsRaw } = await supabase
+  let cutsQuery = supabase
     .from("cuts")
     .select("id, style_name, created_at, photos")
     .eq("client_id", user.id)
     .eq("folder", decodedFolder)
     .order("created_at", { ascending: false });
+  cutsQuery = profileParam
+    ? cutsQuery.eq("for_child_id", profileParam)
+    : cutsQuery.is("for_child_id", null);
+  const { data: cutsRaw } = await cutsQuery;
 
   const cuts = await Promise.all(
     (cutsRaw ?? []).map(async (c) => {
@@ -37,7 +44,11 @@ export default async function FolderDetailPage({
     <div>
       <Topbar roleLabel="Client" />
       <div style={{ padding: "0 24px", maxWidth: 1100, margin: "0 auto" }}>
-        <Link href="/client/folders" className="back-link" style={{ display: "inline-flex", marginBottom: 20, color: "var(--ivory-dim)", fontSize: 13 }}>
+        <Link
+          href={`/client/folders${profileParam ? `?profile=${profileParam}` : ""}`}
+          className="back-link"
+          style={{ display: "inline-flex", marginBottom: 20, color: "var(--ivory-dim)", fontSize: 13 }}
+        >
           ← All folders
         </Link>
         <div className="stage-label">

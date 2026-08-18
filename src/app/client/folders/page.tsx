@@ -3,8 +3,15 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { FOLDER_NAMES } from "@/lib/chaircode/questions";
 import { Topbar } from "@/components/Topbar";
+import AddChildProfile from "@/components/AddChildProfile";
 
-export default async function FoldersPage() {
+export default async function FoldersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ profile?: string }>;
+}) {
+  const { profile: profileParam } = await searchParams;
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -18,10 +25,17 @@ export default async function FoldersPage() {
     .single();
   if (profile?.role !== "client") redirect("/barber");
 
-  const { data: cuts } = await supabase
-    .from("cuts")
-    .select("folder")
-    .eq("client_id", user.id);
+  const { data: childProfiles } = await supabase
+    .from("child_profiles")
+    .select("id, name, age_range")
+    .eq("parent_id", user.id)
+    .order("created_at", { ascending: true });
+
+  let cutsQuery = supabase.from("cuts").select("folder").eq("client_id", user.id);
+  cutsQuery = profileParam
+    ? cutsQuery.eq("for_child_id", profileParam)
+    : cutsQuery.is("for_child_id", null);
+  const { data: cuts } = await cutsQuery;
 
   const counts = new Map<string, number>();
   (cuts ?? []).forEach((c) => counts.set(c.folder, (counts.get(c.folder) ?? 0) + 1));
@@ -29,13 +43,17 @@ export default async function FoldersPage() {
 
   const twoWeeksOut = new Date();
   twoWeeksOut.setDate(twoWeeksOut.getDate() + 14);
-  const { data: dueSoon } = await supabase
+  let dueSoonQuery = supabase
     .from("cuts")
     .select("id, style_name, folder, next_maintenance_due")
     .eq("client_id", user.id)
     .not("next_maintenance_due", "is", null)
     .lte("next_maintenance_due", twoWeeksOut.toISOString().slice(0, 10))
     .order("next_maintenance_due", { ascending: true });
+  dueSoonQuery = profileParam
+    ? dueSoonQuery.eq("for_child_id", profileParam)
+    : dueSoonQuery.is("for_child_id", null);
+  const { data: dueSoon } = await dueSoonQuery;
 
   return (
     <div>
@@ -44,6 +62,26 @@ export default async function FoldersPage() {
         <div className="stage-label">
           <div className="n">Client</div>
           <h2>Your folders</h2>
+        </div>
+
+        <div className="eyebrow" style={{ marginBottom: 10 }}>
+          Whose cuts
+        </div>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 30, alignItems: "center" }}>
+          <Link href="/client/folders" className={`folder-chip ${!profileParam ? "selected" : ""}`}>
+            Myself
+          </Link>
+          {(childProfiles ?? []).map((c) => (
+            <Link
+              key={c.id}
+              href={`/client/folders?profile=${c.id}`}
+              className={`folder-chip ${profileParam === c.id ? "selected" : ""}`}
+            >
+              {c.name || "Unnamed"}
+              {c.age_range ? ` · ${c.age_range}` : ""}
+            </Link>
+          ))}
+          <AddChildProfile />
         </div>
 
         {dueSoon && dueSoon.length > 0 && (
@@ -84,7 +122,11 @@ export default async function FoldersPage() {
         {hasCuts ? (
           <div className="folders-grid">
             {FOLDER_NAMES.map((f) => (
-              <Link key={f} href={`/client/folders/${encodeURIComponent(f)}`} className="folder-card">
+              <Link
+                key={f}
+                href={`/client/folders/${encodeURIComponent(f)}${profileParam ? `?profile=${profileParam}` : ""}`}
+                className="folder-card"
+              >
                 <div className="count">{String(counts.get(f) ?? 0).padStart(2, "0")}</div>
                 <div className="fname">{f}</div>
               </Link>

@@ -40,6 +40,8 @@ export const CONTROLLED_TAGS = [
 
 export type ControlledTag = (typeof CONTROLLED_TAGS)[number];
 
+export const CHILD_AGE_RANGES = ["Under 5", "5–8", "9–12", "13+"] as const;
+
 export const DEFAULT_TOOL_MAINTENANCE = [
   { label: "Shears", task: "Sharpen", interval_weeks: 8 },
   { label: "Clippers", task: "Oil blades", interval_weeks: 1 },
