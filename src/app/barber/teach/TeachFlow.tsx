@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ZONES, CONTROLLED_TAGS, type Zone } from "@/lib/chaircode/constants";
+import { resizeImageClient } from "@/lib/chaircode/resizeImageClient";
 import { Topbar } from "@/components/Topbar";
 
 const ZONE_LABELS: Record<Zone, string> = {
@@ -33,10 +34,11 @@ export default function TeachFlow() {
     null,
   );
 
-  function pickFile(f: File | null) {
+  async function pickFile(f: File | null) {
     if (!f) return;
-    setFile(f);
-    setPreviewUrl(URL.createObjectURL(f));
+    const resized = await resizeImageClient(f);
+    setFile(resized);
+    setPreviewUrl(URL.createObjectURL(resized));
   }
 
   async function analyze() {

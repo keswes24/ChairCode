@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ZONES, type Zone } from "@/lib/chaircode/constants";
+import { resizeImageClient } from "@/lib/chaircode/resizeImageClient";
 
 const ZONE_LABELS: Record<Zone, string> = {
   front: "Front",
@@ -41,11 +42,12 @@ export default function RefreshCutFlow({
   const [result, setResult] = useState<RefreshResult | null>(null);
   const [saving, setSaving] = useState(false);
 
-  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     if (!f) return;
-    setFile(f);
-    setPreviewUrl(URL.createObjectURL(f));
+    const resized = await resizeImageClient(f);
+    setFile(resized);
+    setPreviewUrl(URL.createObjectURL(resized));
   }
 
   async function analyze() {

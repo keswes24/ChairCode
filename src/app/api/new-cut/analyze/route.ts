@@ -99,6 +99,11 @@ export async function POST(request: Request) {
       }),
     );
   } catch (err) {
+    console.error(
+      "[new-cut/analyze] image processing failed",
+      files.map((f) => ({ name: f.name, type: f.type, size: f.size })),
+      err,
+    );
     return NextResponse.json(
       { error: `Image processing failed: ${(err as Error).message}` },
       { status: 400 },
@@ -141,6 +146,7 @@ export async function POST(request: Request) {
       ),
     );
   } catch (err) {
+    console.error("[new-cut/analyze] AI analysis failed", err);
     return NextResponse.json(
       { error: `AI analysis failed: ${(err as Error).message}` },
       { status: 502 },

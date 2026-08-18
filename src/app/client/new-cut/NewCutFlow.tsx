@@ -7,6 +7,7 @@ import { ZONES, type Zone } from "@/lib/chaircode/constants";
 import { QUESTIONS, FOLDER_NAMES } from "@/lib/chaircode/questions";
 import { Topbar } from "@/components/Topbar";
 import { createClient } from "@/lib/supabase/client";
+import { resizeImageClient } from "@/lib/chaircode/resizeImageClient";
 
 type ChildProfile = { id: string; name: string | null; age_range: string | null };
 
@@ -51,6 +52,7 @@ export default function NewCutFlow() {
   const router = useRouter();
   const [view, setView] = useState<View>("upload");
   const [photos, setPhotos] = useState<PhotoEntry[]>([]);
+  const [processingPhotos, setProcessingPhotos] = useState(false);
   const [analyzedPhotos, setAnalyzedPhotos] = useState<AnalyzedPhoto[]>([]);
   const [description, setDescription] = useState("");
   const [folder, setFolder] = useState<string>(FOLDER_NAMES[0]);
@@ -76,14 +78,18 @@ export default function NewCutFlow() {
     });
   }, []);
 
-  function addFiles(fileList: FileList | null) {
-    if (!fileList) return;
-    const newEntries: PhotoEntry[] = Array.from(fileList).map((file) => ({
+  async function addFiles(fileList: FileList | null) {
+    if (!fileList || fileList.length === 0) return;
+    setProcessingPhotos(true);
+    const files = Array.from(fileList);
+    const resized = await Promise.all(files.map((f) => resizeImageClient(f)));
+    const newEntries: PhotoEntry[] = resized.map((file) => ({
       file,
       previewUrl: URL.createObjectURL(file),
       zones: [],
     }));
     setPhotos((prev) => [...prev, ...newEntries]);
+    setProcessingPhotos(false);
   }
 
   function removePhoto(idx: number) {
@@ -117,6 +123,16 @@ export default function NewCutFlow() {
 
     try {
       const resp = await fetch("/api/new-cut/analyze", { method: "POST", body: fd });
+      const contentType = resp.headers.get("content-type") ?? "";
+      if (!contentType.includes("application/json")) {
+        // The server (or a platform layer in front of it) returned something
+        // other than our JSON API response — e.g. an upload rejected for
+        // being too large. Surface a clear message instead of letting the
+        // raw JSON.parse failure show through.
+        throw new Error(
+          `Upload failed (server returned an unexpected response, status ${resp.status}). Try fewer photos or smaller images.`,
+        );
+      }
       const data = await resp.json();
       if (!resp.ok) throw new Error(data.error || "Analysis failed.");
       setBreakdown(data.breakdown);
@@ -204,6 +220,7 @@ export default function NewCutFlow() {
         {view === "upload" && (
           <UploadStage
             photos={photos}
+            processingPhotos={processingPhotos}
             description={description}
             folder={folder}
             childProfiles={childProfiles}
@@ -273,6 +290,7 @@ export default function NewCutFlow() {
 
 function UploadStage(props: {
   photos: PhotoEntry[];
+  processingPhotos: boolean;
   description: string;
   folder: string;
   childProfiles: ChildProfile[];
@@ -288,6 +306,7 @@ function UploadStage(props: {
 }) {
   const {
     photos,
+    processingPhotos,
     description,
     folder,
     childProfiles,
@@ -359,16 +378,20 @@ function UploadStage(props: {
       {photos.length === 0 ? (
         <label htmlFor="photo-input" className="drop">
           <div style={{ fontSize: 30, marginBottom: 10 }}>📷</div>
-          <h3>Drop photos, or tap to choose</h3>
+          <h3>{processingPhotos ? "Processing…" : "Drop photos, or tap to choose"}</h3>
           <p>JPG or PNG · you can add more photos after this one if different angles help</p>
         </label>
       ) : (
         <label
           htmlFor="photo-input"
           className="btn"
-          style={{ display: "inline-flex", cursor: "pointer" }}
+          style={{
+            display: "inline-flex",
+            cursor: processingPhotos ? "default" : "pointer",
+            opacity: processingPhotos ? 0.6 : 1,
+          }}
         >
-          + Add another angle (front, side, back…)
+          {processingPhotos ? "Processing…" : "+ Add another angle (front, side, back…)"}
         </label>
       )}
       <input
@@ -376,6 +399,7 @@ function UploadStage(props: {
         type="file"
         accept="image/*"
         multiple
+        disabled={processingPhotos}
         style={{ display: "none" }}
         onChange={(e) => onAddFiles(e.target.files)}
       />
@@ -465,7 +489,7 @@ function UploadStage(props: {
 
       <button
         className="btn btn-gold"
-        disabled={photos.length === 0}
+        disabled={photos.length === 0 || processingPhotos}
         onClick={onAnalyze}
         style={{ marginTop: 8 }}
       >

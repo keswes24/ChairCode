@@ -5,6 +5,7 @@ import QRCode from "qrcode";
 import { createClient } from "@/lib/supabase/client";
 import { ZONES, CONTROLLED_TAGS, type Zone } from "@/lib/chaircode/constants";
 import { STYLE_TEMPLATES } from "@/lib/chaircode/templates";
+import { resizeImageClient } from "@/lib/chaircode/resizeImageClient";
 import { Topbar } from "@/components/Topbar";
 
 const ZONE_LABELS: Record<Zone, string> = {
@@ -301,11 +302,12 @@ function AddCutForm({ onAdded }: { onAdded: (entry: Entry) => void }) {
           type="file"
           accept="image/*"
           style={{ display: "none" }}
-          onChange={(e) => {
+          onChange={async (e) => {
             const f = e.target.files?.[0];
             if (f) {
-              setFile(f);
-              setPreviewUrl(URL.createObjectURL(f));
+              const resized = await resizeImageClient(f);
+              setFile(resized);
+              setPreviewUrl(URL.createObjectURL(resized));
             }
           }}
         />
