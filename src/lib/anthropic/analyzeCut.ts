@@ -5,27 +5,20 @@ import { CONTROLLED_TAGS, GUARD_CHART, ZONES } from "@/lib/chaircode/constants";
 // per the handoff brief, do not reuse any internal/artifact-proxy-only model id.
 const MODEL = "claude-sonnet-5";
 
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-  // TEMP DIAGNOSTIC: log outgoing header values on failure so we can see
-  // exactly which one contains an invalid (non-Latin1) character in
-  // production. Remove once the ByteString header bug is found.
-  fetch: async (input, init) => {
-    try {
-      return await fetch(input as never, init);
-    } catch (err) {
-      console.error(
-        "[anthropic-fetch-diagnostic] request failed. Header entries:",
-        JSON.stringify(
-          Object.entries((init?.headers as Record<string, string>) ?? {}).map(
-            ([k, v]) => [k, v, [...String(v)].map((c) => c.codePointAt(0))],
-          ),
-        ),
-      );
-      throw err;
-    }
-  },
-});
+// TEMP DIAGNOSTIC: check every env var this module touches for characters
+// outside Latin1 (code point > 255) without ever logging the real secret
+// values. Remove once the production ByteString-header bug is found.
+for (const key of ["ANTHROPIC_API_KEY"] as const) {
+  const value = process.env[key] ?? "";
+  const badChars = [...value]
+    .map((c, i) => ({ i, code: c.codePointAt(0)! }))
+    .filter((c) => c.code > 255);
+  console.error(
+    `[env-diagnostic] ${key}: length=${value.length} badChars=${JSON.stringify(badChars)}`,
+  );
+}
+
+const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export type CorrectionExample = {
   zone: string;
