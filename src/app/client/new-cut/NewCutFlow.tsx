@@ -102,6 +102,19 @@ export default function NewCutFlow() {
     setProcessingPhotos(false);
   }
 
+  async function finishAllRemainingAsIs() {
+    setProcessingPhotos(true);
+    const resized = await Promise.all(cropQueue.map((f) => resizeImageClient(f)));
+    const newEntries: PhotoEntry[] = resized.map((file) => ({
+      file,
+      previewUrl: URL.createObjectURL(file),
+      zones: [],
+    }));
+    setPhotos((prev) => [...prev, ...newEntries]);
+    setCropQueue([]);
+    setProcessingPhotos(false);
+  }
+
   function removePhoto(idx: number) {
     setPhotos((prev) => prev.filter((_, i) => i !== idx));
   }
@@ -233,7 +246,9 @@ export default function NewCutFlow() {
         {view === "upload" && cropQueue.length > 0 && (
           <div style={{ maxWidth: 560 }}>
             <div className="stage-label">
-              <div className="n">{photos.length + 1}</div>
+              <div className="n">
+                Photo {photos.length + 1} of {photos.length + cropQueue.length}
+              </div>
               <h2>Check this photo</h2>
             </div>
             <PhotoCropper
@@ -242,6 +257,16 @@ export default function NewCutFlow() {
               onConfirm={(blob) => finishCurrentCrop(blob)}
               onSkip={() => finishCurrentCrop(cropQueue[0])}
             />
+            {cropQueue.length > 1 && (
+              <button
+                className="btn btn-sm"
+                style={{ marginTop: 12 }}
+                disabled={processingPhotos}
+                onClick={finishAllRemainingAsIs}
+              >
+                Skip all {cropQueue.length} remaining photos as-is
+              </button>
+            )}
           </div>
         )}
 
