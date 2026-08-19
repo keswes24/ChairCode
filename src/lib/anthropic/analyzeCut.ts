@@ -52,6 +52,10 @@ function buildSystemPrompt(corrections: CorrectionExample[]): string {
 
 Guard chart (use these exact numbers, never invent others): ${guardChartText}.
 
+Before any zone-by-zone analysis, check the photo itself for two problems:
+- Multiple people visible: if the client's free-text description identifies which person is theirs (e.g. "the one on the left", "the groom"), use that. Otherwise default to whichever person is most prominent/centered/in-focus, and say explicitly in the "general" zone text that the photo shows multiple people and which one you analyzed, so the client can correct you if you picked wrong.
+- Distance/resolution: if the photo was taken from far away (e.g. a full-body, group, or event shot) such that the head occupies only a small part of the frame, don't strain to invent fine detail you can't actually resolve — say plainly in the affected zones that the photo is too distant to read reliably, and note in "general" that a closer, cropped photo would give a real reading instead of a guess.
+
 Reasoning framework, in this order, for every zone:
 1. Compare hair length in that zone to the ear height on the same head — relative comparison beats absolute guessing from a flat photo.
 2. Look for visible blend/transition lines.

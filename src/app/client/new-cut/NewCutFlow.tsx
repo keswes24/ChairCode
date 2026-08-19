@@ -8,6 +8,7 @@ import { QUESTIONS, FOLDER_NAMES } from "@/lib/chaircode/questions";
 import { Topbar } from "@/components/Topbar";
 import { createClient } from "@/lib/supabase/client";
 import { resizeImageClient } from "@/lib/chaircode/resizeImageClient";
+import PhotoCropper from "@/components/PhotoCropper";
 
 type ChildProfile = { id: string; name: string | null; age_range: string | null };
 
@@ -53,6 +54,7 @@ export default function NewCutFlow() {
   const [view, setView] = useState<View>("upload");
   const [photos, setPhotos] = useState<PhotoEntry[]>([]);
   const [processingPhotos, setProcessingPhotos] = useState(false);
+  const [cropQueue, setCropQueue] = useState<File[]>([]);
   const [analyzedPhotos, setAnalyzedPhotos] = useState<AnalyzedPhoto[]>([]);
   const [description, setDescription] = useState("");
   const [folder, setFolder] = useState<string>(FOLDER_NAMES[0]);
@@ -78,17 +80,25 @@ export default function NewCutFlow() {
     });
   }, []);
 
-  async function addFiles(fileList: FileList | null) {
+  function addFiles(fileList: FileList | null) {
     if (!fileList || fileList.length === 0) return;
+    setCropQueue((prev) => [...prev, ...Array.from(fileList)]);
+  }
+
+  async function finishCurrentCrop(source: File | Blob) {
     setProcessingPhotos(true);
-    const files = Array.from(fileList);
-    const resized = await Promise.all(files.map((f) => resizeImageClient(f)));
-    const newEntries: PhotoEntry[] = resized.map((file) => ({
-      file,
-      previewUrl: URL.createObjectURL(file),
-      zones: [],
-    }));
-    setPhotos((prev) => [...prev, ...newEntries]);
+    const asFile =
+      source instanceof File
+        ? source
+        : new File([source], cropQueue[0].name.replace(/\.[^.]+$/, "") + ".jpg", {
+            type: "image/jpeg",
+          });
+    const resized = await resizeImageClient(asFile);
+    setPhotos((prev) => [
+      ...prev,
+      { file: resized, previewUrl: URL.createObjectURL(resized), zones: [] },
+    ]);
+    setCropQueue((prev) => prev.slice(1));
     setProcessingPhotos(false);
   }
 
@@ -220,7 +230,22 @@ export default function NewCutFlow() {
     <div>
       <Topbar roleLabel="Client" />
       <div style={{ padding: "0 24px", maxWidth: 1100, margin: "0 auto" }}>
-        {view === "upload" && (
+        {view === "upload" && cropQueue.length > 0 && (
+          <div style={{ maxWidth: 560 }}>
+            <div className="stage-label">
+              <div className="n">{photos.length + 1}</div>
+              <h2>Check this photo</h2>
+            </div>
+            <PhotoCropper
+              key={cropQueue.length}
+              file={cropQueue[0]}
+              onConfirm={(blob) => finishCurrentCrop(blob)}
+              onSkip={() => finishCurrentCrop(cropQueue[0])}
+            />
+          </div>
+        )}
+
+        {view === "upload" && cropQueue.length === 0 && (
           <UploadStage
             photos={photos}
             processingPhotos={processingPhotos}

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ZONES, type Zone } from "@/lib/chaircode/constants";
 import { resizeImageClient } from "@/lib/chaircode/resizeImageClient";
+import PhotoCropper from "@/components/PhotoCropper";
 
 const ZONE_LABELS: Record<Zone, string> = {
   front: "Front",
@@ -38,16 +39,28 @@ export default function RefreshCutFlow({
   const [weeks, setWeeks] = useState(defaultWeeksElapsed);
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [pendingCropFile, setPendingCropFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<RefreshResult | null>(null);
   const [saving, setSaving] = useState(false);
 
-  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     if (!f) return;
-    const resized = await resizeImageClient(f);
+    setPendingCropFile(f);
+  }
+
+  async function finishCrop(source: File | Blob) {
+    const asFile =
+      source instanceof File
+        ? source
+        : new File([source], (pendingCropFile?.name ?? "photo").replace(/\.[^.]+$/, "") + ".jpg", {
+            type: "image/jpeg",
+          });
+    const resized = await resizeImageClient(asFile);
     setFile(resized);
     setPreviewUrl(URL.createObjectURL(resized));
+    setPendingCropFile(null);
   }
 
   async function analyze() {
@@ -146,6 +159,18 @@ export default function RefreshCutFlow({
             </div>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (pendingCropFile) {
+    return (
+      <div style={{ maxWidth: 560 }}>
+        <PhotoCropper
+          file={pendingCropFile}
+          onConfirm={(blob) => finishCrop(blob)}
+          onSkip={() => finishCrop(pendingCropFile)}
+        />
       </div>
     );
   }
