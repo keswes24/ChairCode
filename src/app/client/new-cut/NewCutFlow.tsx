@@ -227,7 +227,7 @@ export default function NewCutFlow() {
         {
           margin: 1,
           width: 220,
-          color: { dark: "#0b0b0c", light: "#e4c578" },
+          color: { dark: "#0b0b0c", light: "#ddb437" },
         },
       );
       setSaved({ checkoutCode: data.checkoutCode, qrDataUrl });

@@ -52,7 +52,7 @@ export default function PhotoCropper({
       ctx.fillRect(0, rect.y, rect.x, rect.h);
       ctx.fillRect(rect.x + rect.w, rect.y, canvasSize.w - rect.x - rect.w, rect.h);
       ctx.fillRect(0, rect.y + rect.h, canvasSize.w, canvasSize.h - rect.y - rect.h);
-      ctx.strokeStyle = "#e4c578";
+      ctx.strokeStyle = "#ddb437";
       ctx.lineWidth = 2;
       ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
     }

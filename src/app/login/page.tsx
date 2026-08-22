@@ -1,8 +1,8 @@
 "use client";
 
 import { useActionState } from "react";
-import Image from "next/image";
 import Link from "next/link";
+import AuthLayout from "@/components/AuthLayout";
 import { signIn, type AuthState } from "./actions";
 
 const initialState: AuthState = { error: null };
@@ -11,29 +11,13 @@ export default function LoginPage() {
   const [state, formAction, pending] = useActionState(signIn, initialState);
 
   return (
-    <div
-      style={{
-        maxWidth: 380,
-        margin: "40px auto",
-        padding: "0 24px",
-      }}
-    >
-      <div style={{ textAlign: "center", marginBottom: 8 }}>
-        <Image
-          src="/chaircode-logo.webp"
-          alt="ChairCode"
-          width={180}
-          height={180}
-          priority
-          style={{ width: 180, height: 180, margin: "0 auto" }}
-        />
-      </div>
-      <h1
-        className="display"
-        style={{ fontSize: 40, marginBottom: 28, textAlign: "center" }}
-      >
+    <AuthLayout>
+      <h1 className="display" style={{ fontSize: 30, marginBottom: 6 }}>
         Log in
       </h1>
+      <p className="eyebrow" style={{ marginBottom: 30 }}>
+        Zone system · Cut translation
+      </p>
 
       <form action={formAction}>
         <div className="field">
@@ -57,12 +41,20 @@ export default function LoginPage() {
         </button>
       </form>
 
-      <p style={{ marginTop: 22, fontSize: 13, color: "var(--ivory-dim)" }}>
+      <p
+        style={{
+          marginTop: 22,
+          paddingTop: 20,
+          borderTop: "1px solid var(--line)",
+          fontSize: 13.5,
+          color: "var(--ivory-dim)",
+        }}
+      >
         No account?{" "}
         <Link href="/signup" style={{ color: "var(--gold-bright)" }}>
           Sign up
         </Link>
       </p>
-    </div>
+    </AuthLayout>
   );
 }

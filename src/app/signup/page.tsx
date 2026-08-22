@@ -1,27 +1,12 @@
 "use client";
 
 import { Suspense, useActionState, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import AuthLayout from "@/components/AuthLayout";
 import { signUp, type SignUpState } from "./actions";
 
 const initialState: SignUpState = { error: null, sent: false };
-
-function Logo() {
-  return (
-    <div style={{ textAlign: "center", marginBottom: 8 }}>
-      <Image
-        src="/chaircode-logo.webp"
-        alt="ChairCode"
-        width={180}
-        height={180}
-        priority
-        style={{ width: 180, height: 180, margin: "0 auto" }}
-      />
-    </div>
-  );
-}
 
 export default function SignUpPage() {
   return (
@@ -40,31 +25,26 @@ function SignUpForm() {
 
   if (state.sent) {
     return (
-      <div style={{ maxWidth: 380, margin: "40px auto", padding: "0 24px" }}>
-        <Logo />
-        <h1
-          className="display"
-          style={{ fontSize: 32, marginBottom: 16, textAlign: "center" }}
-        >
+      <AuthLayout>
+        <h1 className="display" style={{ fontSize: 28, marginBottom: 16 }}>
           Check your email
         </h1>
         <p style={{ color: "var(--ivory-dim)", fontSize: 14, lineHeight: 1.6 }}>
           We sent a confirmation link. Click it to activate your account, then
           come back and log in.
         </p>
-      </div>
+      </AuthLayout>
     );
   }
 
   return (
-    <div style={{ maxWidth: 380, margin: "40px auto", padding: "0 24px" }}>
-      <Logo />
-      <h1
-        className="display"
-        style={{ fontSize: 40, marginBottom: 28, textAlign: "center" }}
-      >
+    <AuthLayout>
+      <h1 className="display" style={{ fontSize: 30, marginBottom: 6 }}>
         Sign up
       </h1>
+      <p className="eyebrow" style={{ marginBottom: 30 }}>
+        Zone system · Cut translation
+      </p>
 
       <form action={formAction}>
         <div className="field">
@@ -119,12 +99,20 @@ function SignUpForm() {
         </button>
       </form>
 
-      <p style={{ marginTop: 22, fontSize: 13, color: "var(--ivory-dim)" }}>
+      <p
+        style={{
+          marginTop: 22,
+          paddingTop: 20,
+          borderTop: "1px solid var(--line)",
+          fontSize: 13.5,
+          color: "var(--ivory-dim)",
+        }}
+      >
         Already have an account?{" "}
         <Link href="/login" style={{ color: "var(--gold-bright)" }}>
           Log in
         </Link>
       </p>
-    </div>
+    </AuthLayout>
   );
 }

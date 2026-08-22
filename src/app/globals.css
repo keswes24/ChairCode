@@ -1,15 +1,15 @@
 :root {
   --ink: #0b0b0c;
-  --panel: #161318;
-  --panel-raised: #1e1a20;
-  --line: #2c2820;
-  --gold: #c6a15b;
-  --gold-bright: #e4c578;
-  --gold-dim: #7a663c;
-  --ivory: #f3efe6;
-  --ivory-dim: #a39c8e;
+  --panel: #15161b;
+  --panel-raised: #1c1d23;
+  --line: rgba(201, 162, 39, 0.14);
+  --gold: #c9a227;
+  --gold-bright: #ddb437;
+  --gold-dim: #8a7420;
+  --ivory: #f1eee6;
+  --ivory-dim: #8a8d93;
   --danger: #b8543f;
-  --radius: 2px;
+  --radius: 3px;
 }
 
 * {
@@ -41,8 +41,9 @@ a {
 }
 
 .display {
-  font-family: var(--font-bebas), sans-serif;
-  letter-spacing: 0.04em;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .mono {
@@ -183,7 +184,7 @@ label {
   padding: 3px 10px;
 }
 .stage-label h2 {
-  font-family: var(--font-bebas), sans-serif;
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: 26px;
   letter-spacing: 0.02em;
 }
@@ -214,7 +215,7 @@ label {
   background: var(--panel-raised);
 }
 .drop h3 {
-  font-family: var(--font-bebas), sans-serif;
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: 20px;
   letter-spacing: 0.03em;
   margin-bottom: 6px;
@@ -287,7 +288,7 @@ label {
   }
 }
 .zone-card .zlabel {
-  font-family: var(--font-bebas), sans-serif;
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: 19px;
   color: var(--gold-bright);
   letter-spacing: 0.03em;
@@ -426,7 +427,7 @@ label {
   border-color: var(--gold-dim);
 }
 .folder-card .count {
-  font-family: var(--font-bebas), sans-serif;
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: 34px;
   color: var(--gold);
   line-height: 1;
@@ -469,8 +470,55 @@ label {
   color: var(--ivory-dim);
 }
 .empty-state h3 {
-  font-family: var(--font-bebas), sans-serif;
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: 20px;
   color: var(--ivory);
   margin-bottom: 8px;
+}
+
+/* ---------- Auth split layout (login/signup) ---------- */
+.auth-wrap {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+}
+.auth-form-side {
+  flex: 1 1 460px;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 6vh 48px;
+  position: relative;
+  z-index: 2;
+}
+.auth-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 40px 36px;
+}
+.auth-diagram-side {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at 60% 40%, rgba(201, 162, 39, 0.05), transparent 60%), var(--ink);
+  border-left: 1px solid var(--line);
+  overflow: hidden;
+}
+@media (max-width: 860px) {
+  .auth-diagram-side {
+    position: absolute;
+    inset: 0;
+    opacity: 0.08;
+    z-index: 1;
+  }
+  .auth-form-side {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 6vh 22px;
+    z-index: 2;
+  }
 }

@@ -47,7 +47,7 @@ export default async function SavedCutPage({
   const qrDataUrl = await QRCode.toDataURL(`${origin}/checkout/${cut.checkout_code}`, {
     margin: 1,
     width: 200,
-    color: { dark: "#0b0b0c", light: "#e4c578" },
+    color: { dark: "#0b0b0c", light: "#ddb437" },
   });
 
   const breakdown = cut.breakdown as Record<Zone, string>;
