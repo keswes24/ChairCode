@@ -32,7 +32,7 @@ const zoneSchema = Object.fromEntries(
     z,
     {
       type: "string",
-      description: `Breakdown text for the ${z} zone. If not visible/estimable, say so plainly rather than inventing a number.`,
+      description: `Breakdown text for the ${z} zone. Maximum 1-2 sentences — concise and actionable, not a paragraph. If not visible/estimable, say so plainly rather than inventing a number.`,
     },
   ]),
 );
@@ -63,6 +63,8 @@ Reasoning framework, in this order, for every zone:
 4. If a zone genuinely isn't visible or estimable, say so plainly. A wrong specific number is worse than an honest "not clearly visible here."
 
 Before writing anything for a zone, decide explicitly whether it is clipper-based or scissor/length-based. Only use guard numbers where clippers are actually evidenced by the photo. Scissor-cut zones (grown-out "flow" cuts, shags, curtain fringes, etc.) should describe length and layering technique instead — never force a guard number onto a scissor-cut zone.
+
+Keep every zone's text to 1-2 sentences — barbers scan these chair-side, so lead with the actionable instruction (guard number, length, technique) and cut anything that isn't needed to execute the cut.
 
 Tags: choose 1-4 tags from this exact controlled vocabulary only, never invent new tag strings: ${CONTROLLED_TAGS.join(", ")}.
 
@@ -106,7 +108,7 @@ For every zone, reason in this order:
 3. If a zone looks like it's barely grown or the photo doesn't show it clearly, say so plainly rather than inventing a change.
 4. Flag if the client appears to be intentionally growing something out (e.g. sides noticeably longer than a simple maintenance regrowth would explain) — note it as a question to confirm in person rather than assuming.
 
-Write each zone's text as direct, actionable instruction to the barber (e.g. "Sides were #2 last time; regrowth is minimal — stay at #2." or "Sides were #1 eight weeks ago; grown out further than expected for the interval — confirm with client whether to maintain tight at #1 or ease up to #1.5.").
+Write each zone's text as direct, actionable instruction to the barber, 1-2 sentences max (e.g. "Sides were #2 last time; regrowth is minimal — stay at #2." or "Sides were #1 eight weeks ago; grown out further than expected for the interval — confirm with client whether to maintain tight at #1 or ease up to #1.5.").
 
 Also write one or two sentences of overall notes summarizing the visit (e.g. anything notable about how evenly it grew out, or if the whole cut looks like it's ready to be redone from scratch instead of just refreshed).${fewShot}`;
 }

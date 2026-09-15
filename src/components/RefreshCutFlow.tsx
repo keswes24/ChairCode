@@ -208,6 +208,34 @@ export default function RefreshCutFlow({
         />
       </div>
 
+      {!file && (
+        <button
+          type="button"
+          className="link-btn"
+          style={{
+            marginTop: 10,
+            background: "none",
+            border: "none",
+            padding: 0,
+            color: "var(--gold-bright)",
+            fontSize: 13,
+            cursor: "pointer",
+            textDecoration: "underline",
+          }}
+          onClick={() => document.getElementById("refresh-photo-input-selfie")?.click()}
+        >
+          Or take a quick selfie instead
+        </button>
+      )}
+      <input
+        type="file"
+        id="refresh-photo-input-selfie"
+        accept="image/*"
+        capture="user"
+        onChange={handleFile}
+        style={{ display: "none" }}
+      />
+
       {error && <p className="error-text">{error}</p>}
 
       <button className="btn btn-gold" style={{ marginTop: 20 }} disabled={!file} onClick={analyze}>

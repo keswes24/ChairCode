@@ -336,6 +336,7 @@ function AddCutForm({ onAdded }: { onAdded: (entry: Entry) => void }) {
             id={`zone-${z}`}
             value={zones[z]}
             onChange={(e) => setZones((prev) => ({ ...prev, [z]: e.target.value }))}
+            placeholder="1-2 sentences — concise and actionable"
             rows={2}
             style={{
               width: "100%",
